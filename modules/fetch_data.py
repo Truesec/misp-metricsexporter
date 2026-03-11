@@ -1,4 +1,7 @@
 import requests
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def run(mispurl, mispkey, mispssl, diag):
@@ -30,7 +33,7 @@ def run(mispurl, mispkey, mispssl, diag):
             data[key] = resp.json()
         except Exception as e:
             failed.append(key)
-            print(f"Failed to fetch {key} stats: {e}")
+            logger.warning(f"Failed to fetch {key} stats: {e}")
 
     data["health"] = {"healthy": len(failed) == 0, "failed": failed}
 
