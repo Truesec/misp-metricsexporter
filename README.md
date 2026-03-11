@@ -6,6 +6,12 @@ Works using the Node Exporter textfile collector.
 
 ## Collected metrics
 
+**Health metrics (always exported):**
+
+- Instance health status (healthy/unhealthy)
+- Per-endpoint reachability (version, instance, attributes, orgs, tags, diag, feeds, servers)
+- MISP version info
+
 **Instance metrics:**
 
 - Total events
@@ -13,12 +19,24 @@ Works using the Node Exporter textfile collector.
 - Total correlations
 - Total attributes per attribute type
 - Total events per organisation
-- Total events per TLP
+- Total attributes per organisation
+- TLP tag counts
 
 **Diagnostics metrics:**
 
 - Worker health
 - Update status
+
+**Feed metrics (requires admin API key):**
+
+- Event count per enabled feed
+
+**Sync server metrics (requires admin API key):**
+
+- Last successful pull timestamp per server
+- Last successful push timestamp per server
+
+Individual metric fetches are independent — if one fails, the others will still be collected. Failed endpoints are reported via the health metrics.
 
 ## Installation and usage
 
@@ -26,7 +44,7 @@ This script can be run on any server with MISP API access, including on the MISP
 
 Examples are written for Ubuntu Server 20.04.
 
-**Important:** If you enable diagnostics collection in config.ini, the API key used MUST be from an admin user with write permission.
+**Important:** If you enable diagnostics collection in config.ini, the API key used MUST be from an admin user with write permission. This also enables feed and sync server metrics.
 
 ## Prerequisites
 
@@ -42,7 +60,7 @@ TLP taxonomy enabled and tags active
 # All commands assume that you are root.
 apt install python3 virtualenv git moreutils cron
 cd /opt
-git clone https://github.com/Truesec/misp-metricsexporter.git
+git clone URL
 cd misp-metricsexporter
 virtualenv .venv
 chmod -R 600 /opt/misp-metricsexporter
@@ -85,6 +103,19 @@ Adjust the schedule as needed.
 ## Exported metrics example
 
 ``` text
+# HELP misp_healthy Whether the MISP instance is healthy (1 = healthy, 0 = unhealthy)
+# TYPE misp_healthy gauge
+misp_healthy{instancename="Example MISP"} 1.0
+# HELP misp_endpoint_reachable Whether a specific MISP endpoint is reachable (1 = reachable, 0 = unreachable)
+# TYPE misp_endpoint_reachable gauge
+misp_endpoint_reachable{endpoint="version",instancename="Example MISP"} 1.0
+misp_endpoint_reachable{endpoint="instance",instancename="Example MISP"} 1.0
+misp_endpoint_reachable{endpoint="attributes",instancename="Example MISP"} 1.0
+misp_endpoint_reachable{endpoint="orgs",instancename="Example MISP"} 1.0
+misp_endpoint_reachable{endpoint="tags",instancename="Example MISP"} 1.0
+# HELP misp_version_info MISP version info
+# TYPE misp_version_info gauge
+misp_version_info{instancename="Example MISP",perm_galaxy_editor="false",perm_sighting="false",perm_sync="false",version="2.4.190"} 1.0
 # HELP misp_instance_events_total Total number of events on the MISP instance
 # TYPE misp_instance_events_total gauge
 misp_instance_events_total{instancename="Example MISP"} 10000.0
@@ -135,4 +166,5 @@ misp_workers_healthy{instancename="Example MISP",workertype="default"} 1.0
 misp_workers_healthy{instancename="Example MISP",workertype="email"} 1.0
 misp_workers_healthy{instancename="Example MISP",workertype="prio"} 1.0
 misp_workers_healthy{instancename="Example MISP",workertype="update"} 1.0
+misp_workers_healthy{instancename="Example MISP",workertype="scheduler"} 1.0
 ```

@@ -3,9 +3,16 @@ from modules import convert_data, fetch_data
 
 cwd = os.getcwd()
 config_path = f"{cwd}/config.ini"
+dev_config_path = f"{cwd}/devconfig.ini"
+
+if os.path.isfile(dev_config_path):
+    print(f"Using development config at {dev_config_path}")
+    config_path = dev_config_path
 
 if not os.path.isfile(config_path):
-    raise Exception(f"Config file not found or accessible, make sure config.ini exists at {config_path}")
+    raise Exception(
+        f"Config file not found or accessible, make sure config.ini exists at {config_path}"
+    )
 
 try:
     config = configparser.ConfigParser()
@@ -25,6 +32,8 @@ if not misp_ssl:
     urllib3.disable_warnings()
 
 if __name__ == "__main__":
-    data = fetch_data.run(mispurl=misp_url, mispkey=misp_key, mispssl=misp_ssl, diag=diagnostics)
+    data = fetch_data.run(
+        mispurl=misp_url, mispkey=misp_key, mispssl=misp_ssl, diag=diagnostics
+    )
     metrics = convert_data.run(data=data, instancename=instancename)
-    print(metrics, end='')
+    print(metrics, end="")
