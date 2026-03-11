@@ -74,7 +74,7 @@ chmod 644 /var/prometheus/misp-metrics.prom
 
 ### Configuration
 
-Edit config.ini with your preferred text editor, all values need to be set, use the comments in config.ini as reference.
+Create config.ini with your preferred text editor, all values need to be set, use config.ini.example as reference.
 
 ### Testing
 

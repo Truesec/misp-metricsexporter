@@ -1,12 +1,15 @@
-import urllib3, os, configparser
+import urllib3, os, configparser, logging
 from modules import convert_data, fetch_data
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 cwd = os.getcwd()
 config_path = f"{cwd}/config.ini"
 dev_config_path = f"{cwd}/devconfig.ini"
 
 if os.path.isfile(dev_config_path):
-    print(f"Using development config at {dev_config_path}")
+    logger.info(f"Using development config at {dev_config_path}")
     config_path = dev_config_path
 
 if not os.path.isfile(config_path):
