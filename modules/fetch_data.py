@@ -1,36 +1,37 @@
 import requests
 
+
 def run(mispurl, mispkey, mispssl, diag):
 
     data = {}
-    
+
     # Create a requests session with our authkey in the header
     sess = requests.session()
-    sess.headers.update({
-        'Authorization': mispkey,
-        'Accept': 'application/json'
-                         })  
-    
-    # Fetch instance stats
-    instance = sess.get(url=f"{mispurl}/users/statistics/data", verify=mispssl)
-    data["instance"] = instance.json()
+    sess.headers.update({"Authorization": mispkey, "Accept": "application/json"})
 
-    # Fetch attribute stats
-    attributes = sess.get(url=f"{mispurl}/attributes/attributeStatistics", verify=mispssl)
-    data["attributes"] = attributes.json()
+    endpoints = {
+        "version": f"{mispurl}/servers/getVersion",
+        "instance": f"{mispurl}/users/statistics/data",
+        "attributes": f"{mispurl}/attributes/attributeStatistics",
+        "orgs": f"{mispurl}/users/statistics/orgs/scope:local",
+        "tags": f"{mispurl}/users/statistics/tags",
+    }
 
-    # Fetch organistation stats
-    orgs = sess.get(url=f"{mispurl}/users/statistics/orgs/scope:local", verify=mispssl)
-    data["orgs"] = orgs.json()
-
-    # Fetch diagnostic data if enabled
     if diag:
-        diag = sess.get(url=f"{mispurl}/servers/serverSettings/diagnostics", verify=mispssl)
-        data["diag"] = diag.json()
-    
-    # Fetch tag stats
-    tags = sess.get(url=f"{mispurl}/users/statistics/tags", verify=mispssl)
-    data["tags"] = tags.json()
+        endpoints["diag"] = f"{mispurl}/servers/serverSettings/diagnostics"
+        endpoints["feeds"] = f"{mispurl}/feeds/index"
+        endpoints["servers"] = f"{mispurl}/servers/index"
 
+    failed = []
+    for key, url in endpoints.items():
+        try:
+            resp = sess.get(url=url, verify=mispssl)
+            resp.raise_for_status()
+            data[key] = resp.json()
+        except Exception as e:
+            failed.append(key)
+            print(f"Failed to fetch {key} stats: {e}")
+
+    data["health"] = {"healthy": len(failed) == 0, "failed": failed}
 
     return data
